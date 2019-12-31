@@ -13,7 +13,6 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.database.FirebaseListAdapter;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -29,14 +28,32 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        FloatingActionButton fab = findViewById(R.id.fab);
+        System.out.println(fab == null);
+        if(fab != null){
+            fab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    EditText input = (EditText)findViewById(R.id.input);
+
+                    // Read the input field and push a new instance
+                    // of ChatMessage to the Firebase database
+                    FirebaseDatabase.getInstance()
+                            .getReference()
+                            .push()
+                            .setValue(new ChatMessage(input.getText().toString(),
+                                    FirebaseAuth.getInstance()
+                                            .getCurrentUser()
+                                            .getDisplayName())
+                            );
+
+                    // Clear the input
+                    input.setText("");
+                }
+            });}
         if(FirebaseAuth.getInstance().getCurrentUser() == null) {
             // Start sign in/sign up activity
-            startActivityForResult(
-                    AuthUI.getInstance()
-                            .createSignInIntentBuilder()
-                            .build(),
-                    1
-            );
+            startActivityForResult(AuthUI.getInstance().createSignInIntentBuilder().build(), SIGN_IN_REQUEST_CODE);
         } else {
             // User is already signed in. Therefore, display
             // a welcome Toast
@@ -50,29 +67,7 @@ public class MainActivity extends AppCompatActivity {
             // Load chat room contents
             displayChatMessages();
         }
-        FloatingActionButton fab =
-                (FloatingActionButton)findViewById(R.id.fab);
 
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                EditText input = (EditText)findViewById(R.id.input);
-
-                // Read the input field and push a new instance
-                // of ChatMessage to the Firebase database
-                FirebaseDatabase.getInstance()
-                        .getReference()
-                        .push()
-                        .setValue(new ChatMessage(input.getText().toString(),
-                                FirebaseAuth.getInstance()
-                                        .getCurrentUser()
-                                        .getDisplayName())
-                        );
-
-                // Clear the input
-                input.setText("");
-            }
-        });
     }
     @Override
     protected void onActivityResult(int requestCode, int resultCode,
@@ -119,8 +114,7 @@ public class MainActivity extends AppCompatActivity {
                         model.getMessageTime()));
             }
         };
-
-        listOfMessages.setAdapter(adapter);
+//        listOfMessages.setAdapter(adapter);
     }
 
     @Override
